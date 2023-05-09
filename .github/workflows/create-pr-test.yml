@@ -3,7 +3,6 @@ on:
   pull_request:
     types: [assigned, opened, synchronize, reopened]
 
-
 jobs:
   test:
     runs-on: self-hosted
@@ -46,7 +45,7 @@ jobs:
           context: ./client
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/fib-web-app:client
+          tags: ${{ secrets.DOCKER_USERNAME }}/fib-web-app-client:latest
       
       - name: Build and push fib-web-app/nginx image to docker hub
         uses: docker/build-push-action@v4
@@ -54,7 +53,7 @@ jobs:
           context: ./nginx
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/fib-web-app:nginx
+          tags: ${{ secrets.DOCKER_USERNAME }}/fib-web-app-nginx:latest
 
       - name: Build and push fib-web-app/server image to docker hub
         uses: docker/build-push-action@v4
@@ -62,7 +61,7 @@ jobs:
           context: ./server
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/fib-web-app:server
+          tags: ${{ secrets.DOCKER_USERNAME }}/fib-web-app-server:latest
       
       - name: Build and push fib-web-app/worker image to docker hub
         uses: docker/build-push-action@v4
@@ -70,6 +69,6 @@ jobs:
           context: ./worker
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/fib-web-app:worker
+          tags: ${{ secrets.DOCKER_USERNAME }}/fib-web-app-worker:latest
 
         
