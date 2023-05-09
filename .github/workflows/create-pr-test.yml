@@ -1,0 +1,75 @@
+name: Testing Fib Web App
+on:
+  pull_request:
+    types: [assigned, opened, synchronize, reopened]
+
+
+jobs:
+  test:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login --username "${{ secrets.DOCKER_USERNAME }}" --password-stdin docker.io
+      
+      - name: Build Docker image
+        run: docker build -t cygnetops/web-app-test -f ./client/Dockerfile.dev ./client
+      
+      - name: Run tests
+        run: docker run --name web-app-test -e CI=true cygnetops/web-app-test npm run test
+      
+      - name: Remove temporary web app test container
+        run: docker stop web-app-test && docker rm web-app-test
+
+  build-push:
+    runs-on: self-hosted
+    needs: test
+    steps:
+      - uses: actions/checkout@v2   
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push fib-web-app/client image to docker hub
+        uses: docker/build-push-action@v4
+        with:
+          context: ./client
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/fib-web-app:client
+      
+      - name: Build and push fib-web-app/nginx image to docker hub
+        uses: docker/build-push-action@v4
+        with:
+          context: ./nginx
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/fib-web-app:nginx
+
+      - name: Build and push fib-web-app/server image to docker hub
+        uses: docker/build-push-action@v4
+        with:
+          context: ./server
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/fib-web-app:server
+      
+      - name: Build and push fib-web-app/worker image to docker hub
+        uses: docker/build-push-action@v4
+        with:
+          context: ./worker
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/fib-web-app:worker
+
+        
